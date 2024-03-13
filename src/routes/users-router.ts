@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import StatusCode from 'status-code-enum';
+import { UserModel } from '../models/user';
 
 const router = Router();
 
