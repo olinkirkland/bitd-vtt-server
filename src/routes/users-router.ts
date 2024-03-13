@@ -6,8 +6,44 @@ const router = Router();
 // Register
 // Allow users to register for a new account
 // Payload: { username, email, password }
-router.post('/register', (req, res) => {
-  res.status(StatusCode.SuccessOK).send();
+router.post('/register', async (req, res) => {
+  const { username, password } = req.body;
+  if (!username || !password)
+    return res.status(StatusCode.ClientErrorBadRequest).send('Invalid data');
+
+  if (
+    username.length < 4 ||
+    username.length > 24 ||
+    !/^[a-zA-Z0-9-_]+$/.test(username)
+  ) {
+    console.log(`Error registering user ${username}: Invalid username length`);
+    return res
+      .status(StatusCode.ClientErrorBadRequest)
+      .send(
+        'Username must be between 4 and 24 characters and contain no special characters'
+      );
+  }
+
+  if (password.length < 6) {
+    console.log(`Error registering user ${username}: Invalid password length`);
+    return res
+      .status(StatusCode.ClientErrorBadRequest)
+      .send('Password must be at least 6 characters');
+  }
+
+  if (
+    await UserModel.findOne({ username: { $regex: new RegExp(username, 'i') } })
+  )
+    return res.status(StatusCode.ClientErrorConflict).send('User exists');
+
+  try {
+    // await registerUser(username, password);
+    console.log(`User ${username} registered`);
+    return res.status(StatusCode.SuccessOK).send('User registered');
+  } catch (err) {
+    console.log(`Error registering user ${username}: ${err}`);
+    return res.status(StatusCode.ClientErrorBadRequest).send('Invalid data');
+  }
 });
 
 // Login
